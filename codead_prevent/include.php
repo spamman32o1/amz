@@ -18,6 +18,7 @@ _________  ________             ________  ___________   _____  ________
 **/ 
 require __DIR__."/config.php";
 require __DIR__."/ipinfo.php";
+$ipIsPrivate = !empty($_SESSION["ip_is_private"]);
 if ($countryblock == "on") {
     if ($whichcountry != $ccode) {
         die(
@@ -25,10 +26,10 @@ if ($countryblock == "on") {
         );
     }
 }
-if ($ipquality == "on") {
+if ($ipquality == "on" && !$ipIsPrivate) {
     require __DIR__."/qualitycheck.php";
 }
-if ($vpndetect == "on") {
+if ($vpndetect == "on" && !$ipIsPrivate) {
     require __DIR__."/ipdetect.php";
     if ($vpn == "1") {
         die(
@@ -36,7 +37,7 @@ if ($vpndetect == "on") {
         );
     }
 }
-if ($proxydetect == "on") {
+if ($proxydetect == "on" && !$ipIsPrivate) {
     require __DIR__."/ipdetect.php";
     if ($proxy == "1") {
         die(
@@ -44,7 +45,7 @@ if ($proxydetect == "on") {
         );
     }
 }
-if ($tordetetct == "on") {
+if ($tordetetct == "on" && !$ipIsPrivate) {
     require __DIR__."/ipdetect.php";
     if ($tor == "1") {
         die(
@@ -52,10 +53,10 @@ if ($tordetetct == "on") {
         );
     }
 }
-if ($crawlerdetect == "on") {
+if ($crawlerdetect == "on" && !$ipIsPrivate) {
     require __DIR__."/crawlerdetect.php";
 }
-if ($crawlerdetect2 == "on") {
+if ($crawlerdetect2 == "on" && !$ipIsPrivate) {
     require __DIR__."/crawlerdetectapi.php";
     if ($is_crawler == "1") {
         die(
@@ -63,7 +64,7 @@ if ($crawlerdetect2 == "on") {
         );
     }
 }
-if ($badisp == "on") {
+if ($badisp == "on" && !$ipIsPrivate) {
     require_once __DIR__."/adv.php";
     foreach ($blocker_isp as $ispbot) {
         if (substr_count($ispbot, $isp) > 0) {
@@ -73,7 +74,7 @@ if ($badisp == "on") {
         }
     }
 }
-if ($badhost == "on") {
+if ($badhost == "on" && !$ipIsPrivate) {
     require_once __DIR__."/adv.php";
     foreach ($blocker_hostname as $hostbot) {
         if (substr_count($hostbot, $hostname) > 0) {
@@ -83,7 +84,7 @@ if ($badhost == "on") {
         }
     }
 }
-if ($badua == "on") {
+if ($badua == "on" && !$ipIsPrivate) {
     require_once __DIR__."/adv.php";
     foreach ($blocker_uafull as $uanew) {
         if (substr_count(strtolower($uanew), $ua) > 0) {
@@ -93,7 +94,7 @@ if ($badua == "on") {
         }
     }
 }
-if ($badasn == "on") {
+if ($badasn == "on" && !$ipIsPrivate) {
     require_once __DIR__."/adv.php";
     foreach ($blocker_asn as $asnbot) {
         if (substr_count($asn, $asnbot) > 0) {
@@ -103,6 +104,6 @@ if ($badasn == "on") {
         }
     }
 }
-if ($ondb == "on") {
+if ($ondb == "on" && !$ipIsPrivate) {
     require __DIR__."/advip.php";
 }

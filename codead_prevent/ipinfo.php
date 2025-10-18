@@ -19,10 +19,14 @@ _________  ________             ________  ___________   _____  ________
 
 error_reporting(0);
 session_start();
+
+if (!defined('CODEAD_PUBLIC_IP_FLAGS')) {
+    define('CODEAD_PUBLIC_IP_FLAGS', FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+}
+
 function getinfo()
 {
     $fallbackIP = null;
-    $validationFlags = FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
     foreach (
         [
             "HTTP_CLIENT_IP",
@@ -42,7 +46,7 @@ function getinfo()
                     filter_var(
                         $IPaddress,
                         FILTER_VALIDATE_IP,
-                        ["flags" => $validationFlags]
+                        ["flags" => CODEAD_PUBLIC_IP_FLAGS]
                     ) !== false
                 ) {
                     return $IPaddress;
@@ -58,7 +62,20 @@ function getinfo()
     return $fallbackIP;
 }
 $ipAddress = getinfo();
-$getdetails = $ipAddress !== null
+
+$isValidIP = $ipAddress !== null
+    && filter_var($ipAddress, FILTER_VALIDATE_IP) !== false;
+
+$isPublicIP = $isValidIP
+    && filter_var(
+        $ipAddress,
+        FILTER_VALIDATE_IP,
+        ["flags" => CODEAD_PUBLIC_IP_FLAGS]
+    ) !== false;
+
+$_SESSION["ip_is_private"] = $isValidIP ? !$isPublicIP : false;
+
+$getdetails = $isPublicIP
     ? "https://extreme-ip-lookup.com/json/" . $ipAddress
     : null;
 $curl = curl_init();

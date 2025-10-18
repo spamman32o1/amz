@@ -17,7 +17,15 @@ _________  ________             ________  ___________   _____  ________
             
 **/
 session_start();
+
+if (!empty($_SESSION["ip_is_private"])) {
+    return;
+}
+
     $ip = $_SESSION["ip"];
+    if (empty($ip)) {
+        return;
+    }
     $url = "https://api.iptrooper.net/check/" . $ip;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
