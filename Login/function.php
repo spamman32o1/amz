@@ -73,6 +73,21 @@ function get_nearest_timezone($cur_lat, $cur_long, $country_code = '') {
 }
 
 $IP = get_client_ip();
+$IP2 = $IP;
+
+$ipv6 = '';
+if (!empty($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+    $ipv6 = $_SERVER['REMOTE_ADDR'];
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $forwardedIps = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+    foreach ($forwardedIps as $forwardedIp) {
+        $forwardedIp = trim($forwardedIp);
+        if (filter_var($forwardedIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $ipv6 = $forwardedIp;
+            break;
+        }
+    }
+}
 
 function get_ip1($ip2) {
     $url = "http://www.geoplugin.net/json.gp?ip=".$ip2;
