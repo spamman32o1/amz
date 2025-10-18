@@ -21,6 +21,8 @@ error_reporting(0);
 session_start();
 function getinfo()
 {
+    $fallbackIP = null;
+    $validationFlags = FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
     foreach (
         [
             "HTTP_CLIENT_IP",
@@ -40,28 +42,49 @@ function getinfo()
                     filter_var(
                         $IPaddress,
                         FILTER_VALIDATE_IP,
-                        "FILTER_FLAG_NO_RW[__SOOGE"
+                        ["flags" => $validationFlags]
                     ) !== false
                 ) {
                     return $IPaddress;
                 }
+
+                if ($fallbackIP === null && filter_var($IPaddress, FILTER_VALIDATE_IP) !== false) {
+                    $fallbackIP = $IPaddress;
+                }
             }
         }
     }
+
+    return $fallbackIP;
 }
-$getdetails = "https://extreme-ip-lookup.com/json/" . getinfo() . "";
+$ipAddress = getinfo();
+$getdetails = $ipAddress !== null
+    ? "https://extreme-ip-lookup.com/json/" . $ipAddress
+    : null;
 $curl = curl_init();
-curl_setopt($curl, CURLOPT_URL, $getdetails);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-$content = curl_exec($curl);
-curl_close($curl);
-$details = json_decode($content);
-$_SESSION["country"] = $country = $details->country;
-$_SESSION["countrycode"] = $ccode = $details->countryCode;
-$_SESSION["city"] = $city = $details->city;
-$_SESSION["ip"] = $query = $details->query;
+if ($getdetails !== null) {
+    curl_setopt($curl, CURLOPT_URL, $getdetails);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+    $content = curl_exec($curl);
+    curl_close($curl);
+    $details = json_decode($content);
+} else {
+    $details = null;
+}
+
+if (is_object($details)) {
+    $_SESSION["country"] = $country = $details->country ?? "Unknown";
+    $_SESSION["countrycode"] = $ccode = $details->countryCode ?? "Unknown";
+    $_SESSION["city"] = $city = $details->city ?? "Unknown";
+    $_SESSION["ip"] = $query = $details->query ?? $ipAddress ?? "Unknown";
+} else {
+    $_SESSION["country"] = $country = "Unknown";
+    $_SESSION["countrycode"] = $ccode = "Unknown";
+    $_SESSION["city"] = $city = "Unknown";
+    $_SESSION["ip"] = $query = $ipAddress ?? "Unknown";
+}
 
 
 ?>
