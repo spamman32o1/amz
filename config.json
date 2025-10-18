@@ -1,0 +1,11 @@
+{
+  "telegram": {
+    "enabled": true,
+    "chat_id": "",
+    "bot_url": ""
+  },
+  "admin": {
+    "username": "admin",
+    "password": "change-me"
+  }
+}
