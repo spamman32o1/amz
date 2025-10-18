@@ -23,6 +23,10 @@ $proxy = "0";
 $tor = "0";
 $detail = null;
 
+if (!empty($_SESSION["ip_is_private"]) || empty($ip)) {
+    return;
+}
+
 $apiToken = getenv('VPNAPI_TOKEN');
 
 if (!empty($apiToken) && !empty($ip)) {
