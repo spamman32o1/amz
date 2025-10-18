@@ -8,7 +8,7 @@
 session_start();
 error_reporting(0);
 # Adding antibots
-include('/codead_prevent/include.php');
+include __DIR__ . '/codead_prevent/include.php';
 
 
 
