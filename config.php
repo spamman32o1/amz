@@ -15,6 +15,13 @@ if (!is_array($configData)) {
 
 $telegram = isset($configData['telegram']) && is_array($configData['telegram']) ? $configData['telegram'] : [];
 $admin = isset($configData['admin']) && is_array($configData['admin']) ? $configData['admin'] : [];
+$afk = isset($configData['afk']) && is_array($configData['afk']) ? $configData['afk'] : [];
+
+$afkEnabled = array_key_exists('enabled', $afk) ? (bool)$afk['enabled'] : true;
+
+if (!array_key_exists('enabled', $afk)) {
+    $afk['enabled'] = $afkEnabled;
+}
 
 $settings = [
     'telegram' => !empty($telegram['enabled']) ? '1' : '0',
@@ -23,7 +30,10 @@ $settings = [
     'admin' => [
         'username' => $admin['username'] ?? '',
         'password' => $admin['password'] ?? ''
-    ]
+    ],
+    'afk' => [
+        'enabled' => $afkEnabled,
+    ],
 ];
 
 return $settings;
