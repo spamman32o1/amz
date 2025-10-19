@@ -1,4 +1,19 @@
 <?php
+function get_settings(): array
+{
+  static $settings;
+  if ($settings === null) {
+    $settings = include __DIR__ . '/../config.php';
+  }
+  return $settings;
+}
+
+function is_afk_enabled(): bool
+{
+  $settings = get_settings();
+  return !empty($settings['afk']['enabled']);
+}
+
 function getTimeZoneFromIpAddress(){
   $clientsIpAddress = get_client_ip();
   $clientInformation = unserialize(file_get_contents('http://www.geoplugin.net/php.gp?ip='.$clientsIpAddress));

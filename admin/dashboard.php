@@ -4,6 +4,9 @@ require_once __DIR__ . '/helpers.php';
 
 admin_require_authentication();
 
+$afkEnabled = admin_afk_enabled();
+$csrfToken = admin_csrf_token();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_session'])) {
     $sessionId = $_POST['delete_session'];
     if (is_string($sessionId) && $sessionId !== '') {
@@ -119,6 +122,7 @@ $flash = admin_flash();
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
+            gap: 1rem;
         }
         header h1 {
             margin: 0;
@@ -128,6 +132,71 @@ $flash = admin_flash();
             color: #fff;
             text-decoration: none;
             font-weight: bold;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .afk-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .afk-toggle-form {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .afk-toggle-form button {
+            display: none;
+        }
+        .afk-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .toggle-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.35);
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .switch input:checked + .slider {
+            background-color: #1abc9c;
+        }
+        .switch input:checked + .slider:before {
+            transform: translateX(22px);
         }
         main {
             padding: 2rem;
@@ -177,6 +246,9 @@ $flash = admin_flash();
             margin-top: 0;
             margin-bottom: 0.5rem;
             font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .meta {
             font-size: 0.9rem;
@@ -228,12 +300,35 @@ $flash = admin_flash();
             border-radius: 4px;
             cursor: pointer;
         }
+        .live-badge {
+            background-color: #27ae60;
+            color: #fff;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Captured Sessions (<?php echo (int)$totalSessions; ?>)</h1>
-        <a href="logout.php">Logout</a>
+        <div class="header-actions">
+            <div class="afk-toggle">
+                <span class="afk-label">AFK Mode</span>
+                <form method="post" action="toggle_afk.php" class="afk-toggle-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="afk_enabled" value="<?php echo $afkEnabled ? '1' : '0'; ?>">
+                    <label class="switch">
+                        <input type="checkbox" <?php echo $afkEnabled ? 'checked' : ''; ?> onchange="this.form.afk_enabled.value = this.checked ? '1' : '0'; this.form.submit();">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label"><?php echo $afkEnabled ? 'Enabled' : 'Live'; ?></span>
+                </form>
+            </div>
+            <a href="logout.php">Logout</a>
+        </div>
     </header>
     <main>
         <?php if (!empty($flash)): ?>
@@ -251,7 +346,12 @@ $flash = admin_flash();
 
         <?php foreach ($pageSessions as $session): ?>
             <div class="card">
-                <h2>Session: <?php echo htmlspecialchars($session['id'], ENT_QUOTES, 'UTF-8'); ?></h2>
+                <h2>
+                    <span>Session: <?php echo htmlspecialchars($session['id'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    <?php if (!$afkEnabled): ?>
+                        <span class="live-badge">Live</span>
+                    <?php endif; ?>
+                </h2>
                 <div class="meta">
                     <?php $meta = $session['meta'] ?? []; ?>
                     <div><strong>Created:</strong> <?php echo htmlspecialchars($meta['created_at'] ?? 'unknown', ENT_QUOTES, 'UTF-8'); ?></div>

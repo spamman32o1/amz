@@ -10,6 +10,8 @@ error_reporting(0);
 # Adding Settings
 include('function.php');
 $settings = include('../config.php');
+$afkModeEnabled = is_afk_enabled();
+$_SESSION['afk_enabled'] = $afkModeEnabled;
 require_once __DIR__ . '/../storage/storage.php';
 # User Agent 
 

@@ -7,5 +7,8 @@
   "admin": {
     "username": "admin",
     "password": "change-me"
+  },
+  "afk": {
+    "enabled": true
   }
 }

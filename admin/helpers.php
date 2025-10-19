@@ -1,11 +1,106 @@
 <?php
-function admin_config(): array
+function admin_config(bool $forceReload = false): array
 {
     static $config;
-    if ($config === null) {
+    if ($forceReload || $config === null) {
         $config = include __DIR__ . '/../config.php';
     }
     return $config;
+}
+
+function admin_config_file(): string
+{
+    return __DIR__ . '/../config.json';
+}
+
+function admin_load_raw_config(): array
+{
+    $file = admin_config_file();
+    if (!file_exists($file)) {
+        return [
+            'telegram' => [
+                'enabled' => false,
+                'chat_id' => '',
+                'bot_url' => '',
+            ],
+            'admin' => [
+                'username' => '',
+                'password' => '',
+            ],
+            'afk' => [
+                'enabled' => true,
+            ],
+        ];
+    }
+
+    $contents = file_get_contents($file);
+    if ($contents === false) {
+        throw new RuntimeException('Unable to read configuration file.');
+    }
+
+    $data = json_decode($contents, true);
+    if (!is_array($data)) {
+        $data = [];
+    }
+
+    if (!isset($data['afk']) || !is_array($data['afk'])) {
+        $data['afk'] = [];
+    }
+    if (!array_key_exists('enabled', $data['afk'])) {
+        $data['afk']['enabled'] = true;
+    }
+    $data['afk']['enabled'] = (bool)$data['afk']['enabled'];
+
+    return $data;
+}
+
+function admin_save_raw_config(array $config): void
+{
+    $file = admin_config_file();
+    $config['afk']['enabled'] = !empty($config['afk']['enabled']);
+
+    $encoded = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    if ($encoded === false) {
+        throw new RuntimeException('Unable to encode configuration JSON.');
+    }
+
+    $encoded .= PHP_EOL;
+
+    if (file_put_contents($file, $encoded, LOCK_EX) === false) {
+        throw new RuntimeException('Unable to persist configuration file.');
+    }
+}
+
+function admin_set_afk_enabled(bool $enabled): void
+{
+    $config = admin_load_raw_config();
+    $config['afk']['enabled'] = $enabled;
+    admin_save_raw_config($config);
+    admin_config(true);
+}
+
+function admin_afk_enabled(): bool
+{
+    $config = admin_config();
+    return !empty($config['afk']['enabled']);
+}
+
+function admin_csrf_token(bool $regenerate = false): string
+{
+    if ($regenerate || empty($_SESSION['admin_csrf_token'])) {
+        $_SESSION['admin_csrf_token'] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION['admin_csrf_token'];
+}
+
+function admin_verify_csrf_token(string $token): bool
+{
+    if (empty($token) || empty($_SESSION['admin_csrf_token'])) {
+        return false;
+    }
+
+    return hash_equals($_SESSION['admin_csrf_token'], $token);
 }
 
 function admin_is_authenticated(): bool
