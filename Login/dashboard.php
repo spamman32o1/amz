@@ -16,6 +16,30 @@ $currentSession = $sessions[$currentSessionId] ?? [];
 $awaitingOtp = !empty($_GET['awaiting_otp']);
 $otpSubmitted = !empty($_GET['otp_submitted']);
 
+function latest_otp_value(?array $entries): ?string
+{
+    if (empty($entries)) {
+        return null;
+    }
+
+    $latest = end($entries);
+    if (!is_array($latest)) {
+        return null;
+    }
+
+    $payload = $latest['payload'] ?? [];
+    if (!is_array($payload) || empty($payload)) {
+        return null;
+    }
+
+    $otp = $payload['otp'] ?? null;
+    if (!is_scalar($otp)) {
+        return null;
+    }
+
+    return (string)$otp;
+}
+
 function latest_entry_summary(?array $entries): string
 {
     if (empty($entries)) {
@@ -41,6 +65,8 @@ function latest_entry_summary(?array $entries): string
 
     return empty($summaryPairs) ? 'Awaiting submission.' : implode(' | ', $summaryPairs);
 }
+
+$latestOtp = latest_otp_value($currentSession['otp'] ?? []);
 ?>
 <!doctype html>
 <html class="a-no-js" data-19ax5a9jf="dingo">
@@ -94,6 +120,9 @@ function latest_entry_summary(?array $entries): string
             flex-direction: column;
             margin-top: 24px;
         }
+        .actions form {
+            margin: 0;
+        }
         .a-button {
             display: inline-block;
             text-decoration: none;
@@ -108,6 +137,13 @@ function latest_entry_summary(?array $entries): string
         }
         .a-button:hover {
             background: linear-gradient(#f5d78e,#eeb933);
+        }
+        .a-button--secondary {
+            background: linear-gradient(#edf1f1,#d5d9d9);
+            border-color: #8d9091;
+        }
+        .a-button--secondary:hover {
+            background: linear-gradient(#e3e8e8,#cbd0d0);
         }
         .note {
             font-size: 0.8rem;
@@ -127,6 +163,20 @@ function latest_entry_summary(?array $entries): string
             display: block;
             width: 120px;
             margin: 20px auto 10px;
+        }
+        .otp-display {
+            text-align: center;
+        }
+        .otp-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            background: #fff7cc;
+            border: 1px solid #f0c14b;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-top: 8px;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -153,12 +203,33 @@ function latest_entry_summary(?array $entries): string
             <h2>Card</h2>
             <div class="entry-summary"><?php echo htmlspecialchars(latest_entry_summary($currentSession['card'] ?? []), ENT_QUOTES, 'UTF-8'); ?></div>
         </div>
+        <?php if ($latestOtp !== null): ?>
+            <div class="entry-group otp-display">
+                <h2>One-Time Password</h2>
+                <div class="otp-value"><?php echo htmlspecialchars($latestOtp, ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
+        <?php endif; ?>
 
         <div class="actions">
             <form action="otp.php" method="get">
                 <button type="submit" class="a-button">Grab OTP</button>
             </form>
-            <span class="note">You will be directed to the secure verification page to enter the one-time password.</span>
+            <?php if ($latestOtp !== null): ?>
+                <form action="exit.php" method="post">
+                    <button type="submit" class="a-button">OTP Valid - Exit</button>
+                </form>
+                <form action="otp.php" method="get">
+                    <input type="hidden" name="error" value="invalid">
+                    <button type="submit" class="a-button a-button--secondary">OTP Invalid - Resubmit</button>
+                </form>
+            <?php endif; ?>
+            <span class="note">
+                <?php if ($latestOtp !== null): ?>
+                    Confirm whether the submitted code is valid or request a new one.
+                <?php else: ?>
+                    You will be directed to the secure verification page to enter the one-time password.
+                <?php endif; ?>
+            </span>
         </div>
     </div>
 </body>

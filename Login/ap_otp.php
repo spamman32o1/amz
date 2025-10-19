@@ -12,7 +12,7 @@ require_once __DIR__ . '/../storage/storage.php';
 $otp = isset($_POST['otp']) ? trim($_POST['otp']) : '';
 
 if ($otp === '') {
-    header('Location: otp.php?error=1');
+    header('Location: otp.php?error=missing');
     exit;
 }
 
