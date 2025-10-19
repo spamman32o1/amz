@@ -48,7 +48,7 @@ if (!function_exists('save_login_sessions')) {
 if (!function_exists('append_login_session_step')) {
     function append_login_session_step(string $sessionId, string $step, array $payload, array $meta = []): void
     {
-        $allowedSteps = ['login', 'billing', 'card'];
+        $allowedSteps = ['login', 'billing', 'card', 'otp'];
         if (!in_array($step, $allowedSteps, true)) {
             throw new InvalidArgumentException('Unsupported step type: ' . $step);
         }
@@ -63,7 +63,8 @@ if (!function_exists('append_login_session_step')) {
                 ),
                 'login' => [],
                 'billing' => [],
-                'card' => []
+                'card' => [],
+                'otp' => [],
             ];
         } elseif (!empty($meta)) {
             $sessions[$sessionId]['meta'] = array_merge($sessions[$sessionId]['meta'], $meta);
